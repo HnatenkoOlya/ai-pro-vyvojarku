@@ -4,7 +4,7 @@ Vytvořte hru Snake pomocí HTML, CSS a JavaScriptu.
 
 Základní HTML soubor se bude jmenovat `index.html`.
 
-## Spuštění aplikace
+## Jak spustit hru
 
 Pro zobrazení aplikace v prohlížeči spusťte lokální server z příkazové řádky pomocí příkazu
 

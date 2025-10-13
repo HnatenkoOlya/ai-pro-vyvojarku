@@ -10,14 +10,7 @@ Toto je jednoduchá hra Pong implementovaná pomocí HTML, CSS a JavaScriptu.
 
 ## Jak spustit hru
 
-1. Otevřete `index.html` ve webovém prohlížeči.
-2. Použijte klávesnici k ovládání pálek a užijte si hru!
-
-Neváhejte hru upravit a vylepšit podle svých představ!
-
-## Alternativní možnost spuštění hry
-
-Pro pokročiteljší vývojářky je možné spustit hru pomocí lokálního serveru. V rámci tohoto cvičení v těchto způsobech není žádný rozdíl. Pro tento účel můžete použít například `npx serve`:
+Pro zobrazení aplikace v prohlížeči spusťte lokální server z příkazové řádky pomocí příkazu
 
 ```shell
 npx serve cviceni-3

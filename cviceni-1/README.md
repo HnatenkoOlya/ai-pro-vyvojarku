@@ -1,28 +1,19 @@
-# Cvičení 1
+# Hra T-Rex Dinosaur
 
-Implementujte funkci `sortStudents()` v souboru `index.js`.
+Vytvořte hru T-Rex Dinosaur pomocí HTML, CSS a JavaScriptu.
 
-## Spuštění skriptu
+Základní HTML soubor se bude jmenovat `index.html`.
 
-Pro ověření spusťte skript z příkazové řádky (terminálu) příkazem:
+## Jak spustit hru
+
+Pro zobrazení aplikace v prohlížeči spusťte lokální server z příkazové řádky pomocí příkazu
 
 ```shell
-node cviceni-1/index.js
+npx serve cviceni-1
 ```
 
-Pokud terminál otevřete přímo ze složky `cviceni-1`, spouštěcí příkaz je jen: `node index.js`.
+Pokud máte terminál otevřen ve složce `cviceni-1`, spouštěcí příkaz je jen `npx serve`.
 
-## Očekávaný výstup
+Po spuštění příkazu `npx serve` otevřete v prohlížeči adres http://localhost:3000 (`npx serve` ji vypisuje po spuštění v terminálu).
 
-```JavaScript
-[
-  { name: null, score: 100 },
-  { name: 'Bob', score: 95 },
-  { name: 'Dave', score: 90 },
-  { name: 'Alice', score: 85 },
-  { name: 'Charlie', score: 85 },
-  { name: 'Eve' },
-]
-```
-
-Poslední záznam (*Eve*) může být i na prvním místě – chování funkce `sortSudents()` není pro tento případ v zadání definované.
+Příkaz `npx serve` ukončíte klávesovou zkratkou <kbd>Ctrl+C</kbd>.
