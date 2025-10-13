@@ -1,8 +1,12 @@
 # Hra Snake
 
-Vytvořte hru Snake pomocí HTML, CSS a JavaScriptu.
+Toto je jednoduchá hra Snake implementovaná pomocí HTML, CSS a JavaScriptu.
 
-Základní HTML soubor se bude jmenovat `index.html`.
+## Struktura projektu
+
+- `index.html`: Hlavní HTML dokument, který nastavuje strukturu hry Snake.
+- `styles.css`: Obsahuje styly pro hru Snake, včetně rozvržení, barev a animací.
+- `game.js`: Implementuje herní logiku pro Snake, zpracovává uživatelský vstup, herní mechaniky a vykreslování.
 
 ## Jak spustit hru
 
