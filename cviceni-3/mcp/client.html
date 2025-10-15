@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>MCP Test Client</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 1rem;
+      }
+      #log {
+        white-space: pre-wrap;
+        background: #f6f6f8;
+        padding: 1rem;
+        border-radius: 6px;
+        height: 300px;
+        overflow: auto;
+      }
+      button {
+        margin-right: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MCP WebSocket client</h1>
+    <div>
+      <label
+        >Server:
+        <input id="server" value="ws://localhost:8081" style="width: 300px"
+      /></label>
+      <button id="connect">Connect</button>
+      <button id="disconnect" disabled>Disconnect</button>
+    </div>
+
+    <div style="margin-top: 1rem">
+      <button id="sendPing" disabled>Send ping</button>
+      <button id="sendState" disabled>Send sample state</button>
+    </div>
+
+    <h3>Log</h3>
+    <div id="log"></div>
+
+    <script>
+      const connectBtn = document.getElementById("connect");
+      const disconnectBtn = document.getElementById("disconnect");
+      const sendPing = document.getElementById("sendPing");
+      const sendState = document.getElementById("sendState");
+      const serverInput = document.getElementById("server");
+      const log = document.getElementById("log");
+
+      let ws;
+
+      function append(...parts) {
+        log.textContent += parts.join(" ") + "\n";
+        log.scrollTop = log.scrollHeight;
+      }
+
+      connectBtn.addEventListener("click", () => {
+        ws = new WebSocket(serverInput.value);
+        append("Connecting to", serverInput.value);
+
+        ws.addEventListener("open", () => {
+          append("Connected");
+          connectBtn.disabled = true;
+          disconnectBtn.disabled = false;
+          sendPing.disabled = false;
+          sendState.disabled = false;
+        });
+
+        ws.addEventListener("message", (ev) => {
+          append("<<", ev.data);
+        });
+
+        ws.addEventListener("close", () => {
+          append("Disconnected");
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+          sendPing.disabled = true;
+          sendState.disabled = true;
+        });
+
+        ws.addEventListener("error", (e) => {
+          append("WebSocket error", e);
+        });
+      });
+
+      disconnectBtn.addEventListener("click", () => {
+        if (ws) ws.close();
+      });
+
+      sendPing.addEventListener("click", () => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        const msg = { type: "ping", time: Date.now() };
+        append(">>", JSON.stringify(msg));
+        ws.send(JSON.stringify(msg));
+      });
+
+      sendState.addEventListener("click", () => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        const sample = {
+          type: "state",
+          bird: { x: 50, y: 100, vel: 0 },
+          score: 10,
+        };
+        append(">>", JSON.stringify(sample));
+        ws.send(JSON.stringify(sample));
+      });
+    </script>
+  </body>
+</html>

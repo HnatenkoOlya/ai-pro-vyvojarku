@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dino hra (offline)</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root {
+        --bg: #f7f7f7;
+        --ground: #666;
+        --dino: #222;
+        --obstacle: #333;
+        --text: #222;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        font-family: system-ui, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      }
+      .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+      }
+      canvas {
+        background: linear-gradient(#f7f7f7, #eef2f3);
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      }
+      .info {
+        text-align: center;
+        margin-top: 10px;
+        color: var(--text);
+      }
+      .hint {
+        font-size: 13px;
+        color: #666;
+      }
+      button {
+        margin-left: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        background: white;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div>
+        <canvas
+          id="game"
+          width="800"
+          height="200"
+          aria-label="Dino hra"
+        ></canvas>
+        <div class="info">
+          <strong id="scoreLabel">Score: 0</strong>
+          <span class="hint"> — Skok: SPACe / ↑ nebo kliknutí / touch</span>
+          <button id="restartBtn">Restart</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+        const scoreLabel = document.getElementById("scoreLabel");
+        const restartBtn = document.getElementById("restartBtn");
+
+        const W = canvas.width;
+        const H = canvas.height;
+
+        // Hráč (dino)
+        const dino = {
+          x: 50,
+          width: 44,
+          height: 44,
+          y: H - 44 - 24, // nad zemí
+          vy: 0,
+          jumpPower: -11,
+          grounded: true,
+          spriteColor: "#222",
+        };
+
+        const gravity = 0.6;
+        const groundHeight = 24;
+        let obstacles = [];
+        let frame = 0;
+        let score = 0;
+        let speed = 3; // posun překážek
+        let gameOver = false;
+
+        function reset() {
+          obstacles = [];
+          frame = 0;
+          score = 0;
+          speed = 6;
+          dino.y = H - dino.height - groundHeight;
+          dino.vy = 0;
+          dino.grounded = true;
+          gameOver = false;
+          scoreLabel.textContent = "Score: 0";
+          loop();
+        }
+
+        // Vytvoří překážku (kaktus)
+        function spawnObstacle() {
+          const height = randInt(20, 35);
+          const width = randInt(8, 18);
+          const y = H - groundHeight - height;
+          obstacles.push({
+            x: W + 20,
+            y,
+            width,
+            height,
+            passed: false,
+          });
+        }
+
+        function randInt(a, b) {
+          return Math.floor(Math.random() * (b - a + 1)) + a;
+        }
+
+        // Kolize AABB
+        function collides(a, b) {
+          return !(
+            a.x + a.width < b.x ||
+            a.x > b.x + b.width ||
+            a.y + a.height < b.y ||
+            a.y > b.y + b.height
+          );
+        }
+
+        // Input - skok
+        function jump() {
+          if (gameOver) return;
+          if (dino.grounded) {
+            dino.vy = dino.jumpPower;
+            dino.grounded = false;
+          }
+        }
+
+        // Eventy
+        window.addEventListener("keydown", (e) => {
+          if (e.code === "Space" || e.code === "ArrowUp") {
+            e.preventDefault();
+            jump();
+          }
+          if (e.code === "KeyR" && gameOver) reset();
+        });
+
+        canvas.addEventListener("click", () => jump());
+        canvas.addEventListener(
+          "touchstart",
+          (e) => {
+            e.preventDefault();
+            jump();
+          },
+          { passive: false }
+        );
+        restartBtn.addEventListener("click", reset);
+
+        // Hlavní smyčka
+        let lastTime = 0;
+        function loop(timestamp) {
+          if (gameOver) {
+            draw();
+            drawGameOver();
+            return;
+          }
+          // jednoduché řízení spawnů
+          frame++;
+          if (frame % Math.max(90 - Math.floor(score / 150), 50) === 0) {
+            spawnObstacle();
+          }
+
+          // zrychlení podle skóre
+          speed = 3 + Math.floor(score / 400);
+
+          update();
+          draw();
+
+          lastTime = timestamp;
+          requestAnimationFrame(loop);
+        }
+
+        function update() {
+          // dino physics
+          dino.vy += gravity;
+          dino.y += dino.vy;
+          if (dino.y + dino.height >= H - groundHeight) {
+            dino.y = H - groundHeight - dino.height;
+            dino.vy = 0;
+            dino.grounded = true;
+          }
+
+          // updatuj překážky
+          for (let i = obstacles.length - 1; i >= 0; i--) {
+            const ob = obstacles[i];
+            ob.x -= speed;
+            // když minou dino a ještě nebyly započítány
+            if (!ob.passed && ob.x + ob.width < dino.x) {
+              ob.passed = true;
+              score += 10;
+              scoreLabel.textContent = "Score: " + score;
+            }
+            // odstranění mimo obraz
+            if (ob.x + ob.width < -50) obstacles.splice(i, 1);
+            // kolize
+            if (
+              collides(
+                {
+                  x: dino.x,
+                  y: dino.y,
+                  width: dino.width,
+                  height: dino.height,
+                },
+                ob
+              )
+            ) {
+              gameOver = true;
+            }
+          }
+
+          // postupný drobný nárůst skóre každým snímkem pro hladší počítání
+          if (frame % 6 === 0) {
+            score += 1;
+            scoreLabel.textContent = "Score: " + score;
+          }
+        }
+
+        function draw() {
+          // pozadí
+          ctx.clearRect(0, 0, W, H);
+          // obloha
+          ctx.fillStyle = "#f7f7f7";
+          ctx.fillRect(0, 0, W, H);
+
+          // zem
+          ctx.fillStyle = "#eaeaea";
+          ctx.fillRect(0, H - groundHeight, W, groundHeight);
+          // čára země
+          ctx.fillStyle = "var(--ground)";
+          ctx.fillRect(0, H - groundHeight, W, 3);
+
+          // dino (jednoduché)
+          ctx.fillStyle = dino.spriteColor;
+          // tělo
+          ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+          // oko (malý detail)
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(dino.x + dino.width - 12, dino.y + 10, 6, 6);
+
+          // překážky
+          ctx.fillStyle = "#333";
+          for (const ob of obstacles) {
+            ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+          }
+
+          // score v canvase (navíc)
+          ctx.fillStyle = "#555";
+          ctx.font = "14px system-ui, Arial";
+          ctx.textAlign = "right";
+          ctx.fillText("Score: " + score, W - 12, 22);
+        }
+
+        function drawGameOver() {
+          ctx.save();
+          ctx.fillStyle = "rgba(0,0,0,0.5)";
+          ctx.fillRect(0, 0, W, H);
+          ctx.fillStyle = "#fff";
+          ctx.textAlign = "center";
+          ctx.font = "bold 28px system-ui, Arial";
+          ctx.fillText("GAME OVER", W / 2, H / 2 - 10);
+          ctx.font = "16px system-ui, Arial";
+          ctx.fillText("Stiskni Restart nebo R pro znovu", W / 2, H / 2 + 20);
+          ctx.restore();
+        }
+
+        // start
+        reset();
+      })();
+    </script>
+  </body>
+</html>
